@@ -1,0 +1,165 @@
+{
+ "dets": {
+  "the": [
+   "le",
+   "la"
+  ],
+  "a": [
+   "un",
+   "une"
+  ],
+  "my": [
+   "mon",
+   "ma"
+  ],
+  "this": [
+   "ce",
+   "cette"
+  ]
+ },
+ "pre": {
+  "big": [
+   "grand",
+   "grande"
+  ],
+  "small": [
+   "petit",
+   "petite"
+  ],
+  "pretty": [
+   "joli",
+   "jolie"
+  ],
+  "new": [
+   "nouveau",
+   "nouvelle"
+  ]
+ },
+ "post": {
+  "red": [
+   "rouge",
+   "rouge"
+  ],
+  "black": [
+   "noir",
+   "noire"
+  ],
+  "green": [
+   "vert",
+   "verte"
+  ],
+  "white": [
+   "blanc",
+   "blanche"
+  ],
+  "blue": [
+   "bleu",
+   "bleue"
+  ],
+  "yellow": [
+   "jaune",
+   "jaune"
+  ]
+ },
+ "nouns": {
+  "cat": [
+   "chat",
+   "m"
+  ],
+  "dog": [
+   "chien",
+   "m"
+  ],
+  "book": [
+   "livre",
+   "m"
+  ],
+  "horse": [
+   "cheval",
+   "m"
+  ],
+  "fish": [
+   "poisson",
+   "m"
+  ],
+  "hat": [
+   "chapeau",
+   "m"
+  ],
+  "bike": [
+   "vélo",
+   "m"
+  ],
+  "duck": [
+   "canard",
+   "m"
+  ],
+  "rabbit": [
+   "lapin",
+   "m"
+  ],
+  "robot": [
+   "robot",
+   "m"
+  ],
+  "house": [
+   "maison",
+   "f"
+  ],
+  "car": [
+   "voiture",
+   "f"
+  ],
+  "frog": [
+   "grenouille",
+   "f"
+  ],
+  "pear": [
+   "poire",
+   "f"
+  ],
+  "flower": [
+   "fleur",
+   "f"
+  ],
+  "mouse": [
+   "souris",
+   "f"
+  ],
+  "cow": [
+   "vache",
+   "f"
+  ],
+  "moon": [
+   "lune",
+   "f"
+  ],
+  "table": [
+   "table",
+   "f"
+  ],
+  "guitar": [
+   "guitare",
+   "f"
+  ]
+ },
+ "verbs": {
+  "sees": "voit",
+  "eats": "mange",
+  "likes": "aime",
+  "finds": "trouve",
+  "watches": "regarde",
+  "wants": "veut",
+  "draws": "dessine",
+  "follows": "suit",
+  "buys": "achète",
+  "washes": "lave"
+ },
+ "link": {
+  "and": "et",
+  "it": [
+   "il",
+   "elle"
+  ]
+ }
+}

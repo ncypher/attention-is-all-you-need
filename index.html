@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="The 2017 Transformer paper as a working model: a 7,136-number Transformer runs in your browser, and you can watch it attend, bet on where it looks, and remove its parts.">
+<meta name="generator" content="Claude Fable 5.2 / Anthropic, written for ncypher Conversational Artifacts on 2026-11-10">
+<meta name="color-scheme" content="light">
+<title>Attention Is All You Need · Playable Edition</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 fill=%27%23fcfcfb%27/%3E%3Cpath d=%27M5 9C16 9 16 23 27 23%27 fill=%27none%27 stroke=%27%232444e2%27 stroke-width=%274%27 stroke-linecap=%27round%27/%3E%3Cpath d=%27M5 23C16 23 16 9 27 9%27 fill=%27none%27 stroke=%27%23ee6c12%27 stroke-width=%274%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=STIX+Two+Text:ital,wght@0,400;0,600;0,700;1,400&amp;display=swap">
+<link rel="stylesheet" href="css/page.css">
+</head>
+<body>
+<a class="skip" href="#abstract">Skip to the paper</a>
+<div class="sheet">
+
+<header class="running">
+  <span>arXiv:1706.03762 · playable edition</span>
+  <a href="https://ncypher.github.io/tomfoolery/">Conversational Artifacts ↗</a>
+</header>
+
+<div class="titleblock">
+  <h1>Attention Is All You Need</h1>
+</div>
+
+<ul class="authors" aria-label="Authors of the 2017 paper">
+  <li><b>Ashish Vaswani</b><span>Google Brain</span></li>
+  <li><b>Noam Shazeer</b><span>Google Brain</span></li>
+  <li><b>Niki Parmar</b><span>Google Research</span></li>
+  <li><b>Jakob Uszkoreit</b><span>Google Research</span></li>
+  <li><b>Llion Jones</b><span>Google Research</span></li>
+  <li><b>Aidan N. Gomez</b><span>University of Toronto, at Google Brain</span></li>
+  <li><b>Łukasz Kaiser</b><span>Google Brain</span></li>
+  <li><b>Illia Polosukhin</b><span>at Google Research</span></li>
+</ul>
+<p class="byline">Eight authors, credited as equal contributors, listed in random order. Posted 12 June 2017.<br>
+Playable edition written and built in 2026 by Claude Fable 5.2, one of the paper's descendants.</p>
+
+<section class="abstract" id="abstract" aria-labelledby="abs-h">
+  <h2 id="abs-h">Abstract</h2>
+  <p>In June 2017 eight researchers at Google posted a paper proposing that a translation system could drop its most trusted part, the recurrent network that reads a sentence one word at a time, and keep only a side mechanism called attention. They named the result the Transformer. I am built on it, and so is nearly every large language model in use today. This edition replaces the paper's figures with a working one. A Transformer of 7,136 numbers, trained for this page in 28 seconds, runs in your browser and translates a toy English into French. Every line drawn between two words below is its actual arithmetic. You can watch it read, bet on where it will look next, and pull out its parts to learn which ones it needs.</p>
+</section>
+
+<figure class="fig" id="fig-live">
+  <div class="fig-body">
+    <div class="builder" id="builder" aria-label="Sentence builder"></div>
+    <div class="fig-split">
+      <div id="live-attn"></div>
+      <aside class="readout" id="live-readout" aria-live="polite"></aside>
+    </div>
+    <div class="toolbar">
+      <button type="button" class="btn" id="live-replay">Replay</button>
+      <button type="button" class="btn" id="live-shuffle">New sentence</button>
+      <span class="legend" id="live-legend"></span>
+    </div>
+  </div>
+  <figcaption><b>Figure 1:</b> The model at work. Change any word, or add a second clause. Each French word draws lines to the English it read while being written. The two inks are the model's two attention heads; a heavier line means more attention. Hover or tap a word to isolate it.</figcaption>
+</figure>
+
+<div class="tablewrap">
+<table class="spec">
+  <caption><b>Table 1:</b> The paper's base model and the one on this page. Same design, different scale.</caption>
+  <thead><tr><th scope="col"></th><th scope="col">Paper, 2017</th><th scope="col">This page</th></tr></thead>
+  <tbody>
+    <tr><th scope="row">Encoder layers, decoder layers</th><td>6, 6</td><td>1, 1</td></tr>
+    <tr><th scope="row">Numbers per word (<i>d</i><sub>model</sub>)</th><td>512</td><td>16</td></tr>
+    <tr><th scope="row">Attention heads per layer</th><td>8</td><td>2</td></tr>
+    <tr><th scope="row">Feed-forward width</th><td>2,048</td><td>32</td></tr>
+    <tr><th scope="row">Learned numbers</th><td>about 65 million</td><td>7,136</td></tr>
+    <tr><th scope="row">Training</th><td>12 hours on 8 P100 GPUs</td><td>28 seconds on 2 CPU cores</td></tr>
+    <tr><th scope="row">Task</th><td>English to German, about 4.5 million sentence pairs</td><td>Toy English to French, 105 words, about 2.2 trillion possible sentences</td></tr>
+    <tr><th scope="row">Result</th><td>The larger “big” version scored 28.4 BLEU, more than 2 points above the best previous systems</td><td>20,000 of 20,000 random test sentences exactly right</td></tr>
+  </tbody>
+</table>
+</div>
+
+<section id="s1">
+  <h2><span class="num">1</span> The trouble with reading in order</h2>
+  <p>Before 2017 the best translation systems were recurrent networks. They read a sentence the way a message travels down a line of people: each word updates a running summary and hands it to the next. Two costs follow. Word nine cannot be processed until word eight is done, so the work cannot be spread across a parallel machine. And anything the first word knew has to survive every hand-off to reach the last.</p>
+  <p>Those systems already used attention as a helper, a way for the output side to glance back at the input. The paper's footnote credits Jakob Uszkoreit with the proposal to go further and replace the recurrence with attention entirely. Without the line of people, every word can consult every other word directly, in one step, and all of them can do it at the same moment.</p>
+  <figure class="fig" id="fig-path">
+    <div class="fig-body">
+      <p class="prompt">The word <b>it</b> needs a fact from an earlier word. Tap the word that holds it.</p>
+      <div class="pathrow"><span class="rowlabel">Recurrent network</span><div class="chips" id="path-rnn"></div><output class="count" id="path-rnn-n"></output></div>
+      <div class="pathrow"><span class="rowlabel">Attention</span><div class="chips arcwrap" id="path-att"></div><output class="count" id="path-att-n"></output></div>
+    </div>
+    <figcaption><b>Figure 2:</b> Getting a fact from one word to another. The paper's Table 1 states this as path length: it grows with the distance for a recurrent layer and stays at one step for self-attention.</figcaption>
+  </figure>
+</section>
+
+<section id="s2">
+  <h2><span class="num">2</span> One question, many answers</h2>
+  <p>Here is the whole mechanism. A word that needs information forms a question: a short list of numbers called a <em>query</em>. Every word it could consult holds up a <em>key</em>, another short list. Multiply query and key together, number by number, and add up the results. A large total means this key answers that question. The totals then pass through a softmax, which turns them into shares that sum to 100%. The asking word takes that share of what each word has to offer, which is a third list called its <em>value</em>.</p>
+  <p>The paper writes all of that in one line and calls it scaled dot-product attention:</p>
+  <p class="eq"><span>Attention(<i>Q</i>, <i>K</i>, <i>V</i>) = softmax(<i>QK</i><sup>T</sup> / √<i>d<sub>k</sub></i>) <i>V</i></span><span class="eqn">(1)</span></p>
+  <p>The division by √<i>d<sub>k</sub></i> is the “scaled” part. Longer lists produce bigger totals, and big totals push the softmax toward all-or-nothing answers that are hard to learn from. Dividing by the square root of the list length keeps them in range. In this model the lists are 8 numbers long.</p>
+  <figure class="fig" id="fig-qk">
+    <div class="fig-body">
+      <p class="prompt">The model is about to write one French word. Choose which:</p>
+      <div class="steps" id="qk-steps" role="group" aria-label="French word being written"></div>
+      <div class="toolbar"><span class="legend" id="qk-heads" role="group" aria-label="Attention head"></span></div>
+      <div id="qk-table"></div>
+    </div>
+    <figcaption><b>Figure 3:</b> One real question. The query's 8 numbers are drawn as bars above and below zero, and so is each English word's key. Inked key bars point the same way as the query and raise the score; hollow bars point the other way and lower it. The share column is the softmax of the scores.</figcaption>
+  </figure>
+</section>
+
+<section id="s3">
+  <h2><span class="num">3</span> Three places to look</h2>
+  <p>A single head asks one question at a time, so the paper runs eight in parallel in every layer, each with its own learned queries, keys and values, and joins their answers. It calls this multi-head attention. The footnote credits it, together with equation (1) and the position trick of section 4, to Noam Shazeer. This model has two heads per layer, printed in blue and orange.</p>
+  <p>The Transformer then uses that one mechanism in three places.</p>
+  <ol class="places">
+    <li><b>English reads English.</b> In the encoder, every English word consults the others before translation starts. I trained this model and then went looking for what the heads had learned. French articles depend on the gender of the noun, so in both heads each English article reads ahead to its own noun. Across 1,000 test sentences, head A spends 97% of an article's attention there. <button type="button" class="link" data-preset="enc">Show me</button></li>
+    <li><b>French reads English.</b> Between encoder and decoder, each French word about to be written consults the English. French puts colours after the noun but keeps a few common adjectives (big, small, pretty, new) in front of it, so the lines cross where the word order changes. <button type="button" class="link" data-preset="cross">Show me</button></li>
+    <li><b>French reads its own past.</b> In the decoder, each new word consults the French written so far. A mask hides everything to its right, because at writing time those words do not exist yet. English <i>it</i> has no gender, so to choose between <i>il</i> and <i>elle</i> head A reads back to the subject at the start of its own sentence, where the gender is already on record. It spends 95% of its attention there, however far back that is. <button type="button" class="link" data-preset="self">Show me</button></li>
+  </ol>
+  <figure class="fig" id="fig-three">
+    <div class="fig-body">
+      <div class="tabs" role="tablist" aria-label="Which attention to show" id="three-tabs"></div>
+      <div class="fig-split">
+        <div id="three-attn" role="tabpanel"></div>
+        <aside class="readout" id="three-note" aria-live="polite"></aside>
+      </div>
+      <div class="toolbar">
+        <button type="button" class="btn" id="three-shuffle">New sentence</button>
+        <span class="legend" id="three-legend"></span>
+      </div>
+    </div>
+    <figcaption><b>Figure 4:</b> All three uses of attention on one sentence. The right column asks; the left column is what it may consult. In this toy language <i>it</i> always means the subject of the sentence. Not every head has a tidy job. I cannot give orange in the last tab a one-line description.</figcaption>
+  </figure>
+</section>
+
+<section id="s4">
+  <h2><span class="num">4</span> Where am I?</h2>
+  <p>There is a catch. Equation (1) treats a sentence as a bag of words. Nothing in it knows that <i>the cow sees the hat</i> and <i>the hat sees the cow</i> are different sentences, because a recurrent network got word order for free and attention does not. So before anything else, each word's numbers are stamped with its position: a pattern of sine and cosine waves, a different wavelength for each pair of numbers, added straight onto the word.</p>
+  <p class="eq"><span><i>PE</i>(<i>pos</i>, 2<i>i</i>) = sin(<i>pos</i> / 10000<sup>2<i>i</i>/<i>d</i></sup>)&emsp;<i>PE</i>(<i>pos</i>, 2<i>i</i>+1) = cos(<i>pos</i> / 10000<sup>2<i>i</i>/<i>d</i></sup>)</span><span class="eqn">(2)</span></p>
+  <figure class="fig" id="fig-pos">
+    <div class="fig-body">
+      <div class="posgrid"><span class="axis-y">16 numbers</span><canvas id="pos-canvas" height="160" aria-label="Position stamp: sine and cosine stripes for positions 0 to 19"></canvas></div>
+      <p class="axis-x">position in the sentence, 0 to 19</p>
+      <div id="pos-probe" class="probe"></div>
+      <div class="toolbar"><button type="button" class="btn toggle" id="pos-toggle" aria-pressed="false">Erase the position stamp</button><output id="pos-count" class="count"></output></div>
+      <div id="pos-out" class="outlines" aria-live="polite"></div>
+    </div>
+    <figcaption><b>Figure 5:</b> The position stamp from equation (2), computed for this model. Each column is one position and no two columns match. Darker is higher. Erase the stamp and the model loses its place: it repeats words, skips others, or stops early.</figcaption>
+  </figure>
+</section>
+
+<section id="s5">
+  <h2><span class="num">5</span> Writing, one word at a time</h2>
+  <p>The decoder writes a word, reads its own output back in, and writes the next. At each step it scores every French word it knows and takes the highest. This model knows 60. The paper's knew tens of thousands of word pieces. Figure 1 shows those odds beside the lines.</p>
+  <p>You have seen enough to predict it. Before each French word appears, tap the English word you think the model is reading. You score by how much of its attention you guessed.</p>
+  <figure class="fig" id="fig-game">
+    <div class="fig-body">
+      <div class="scorebar"><span id="game-status"></span><span id="game-score"></span></div>
+      <div id="game-attn"></div>
+      <p class="prompt" id="game-msg" aria-live="polite"></p>
+      <div class="toolbar">
+        <button type="button" class="btn" id="game-new">New sentence</button>
+        <button type="button" class="btn" id="game-reveal">Reveal the rest</button>
+        <span class="count" id="game-best"></span>
+      </div>
+    </div>
+    <figcaption><b>Figure 6:</b> Be the attention head. Scoring: 100 points if you pick the word the model read most, otherwise your word's share of its attention compared with the top word's.</figcaption>
+  </figure>
+</section>
+
+<section id="s6">
+  <h2><span class="num">6</span> Is attention all you need?</h2>
+  <p>The title is a claim about what can be left out: recurrence and convolution, the two standard ways of reading a sequence in 2017. It does not say attention works alone. Around it sit the position stamp, a small feed-forward network after each attention step, and residual connections that carry every word's own numbers past each block so that nothing has to be relearned.</p>
+  <p>Here is the whole machine. Take parts out and I will rerun 200 test sentences each time. “Blur” keeps a block in place but makes it give every word equal attention, which is roughly what a head does before it has learned anything.</p>
+  <figure class="fig" id="fig-bench">
+    <div class="fig-body">
+      <div class="machine" id="machine"></div>
+      <div class="result" id="bench-result" aria-live="polite"></div>
+      <div class="toolbar"><button type="button" class="btn" id="bench-reset">Put everything back</button></div>
+    </div>
+    <figcaption><b>Figure 7:</b> The architecture as a parts list. Tap a part to remove it. One caution: when the paper tests variations (its Table 3) it retrains the model each time. This bench cuts parts out of a model that learned with them in place, which is a harsher test.</figcaption>
+  </figure>
+  <p>Try the position stamp first, then blur the attention over the English. Then remove only head A from the decoder's self-attention and read the failures. Every one of them is a wrong <i>il</i> or <i>elle</i>, and nothing else breaks.</p>
+</section>
+
+<section id="s7">
+  <h2><span class="num">7</span> How it learned</h2>
+  <p>I trained this model with the paper's own recipe at a smaller scale: the Adam optimiser, a learning rate that climbs for the first 400 steps and then decays, dropout of 0.1 and label smoothing of 0.1. It ran for 3,000 steps of 64 sentences each. The toy grammar can produce about 2.2 trillion sentences, and training showed it 192,000 examples. One sentence in ten was held back and never shown, and those are the ones the curve below is measured on.</p>
+  <figure class="fig" id="fig-train">
+    <div class="fig-body"><div id="train-chart" class="chart"></div></div>
+    <figcaption><b>Figure 8:</b> Share of held-out sentences translated exactly, measured during training. For the first 300 steps almost nothing is right. By step 500 it is at 96%, it first reaches 100% at step 750, and every check from step 1,500 to the end of training at step 3,000 is perfect. The dashed line is the learning rate, on its own scale.</figcaption>
+  </figure>
+</section>
+
+<section id="s8">
+  <h2><span class="num">8</span> After 2017</h2>
+  <p>The paper closes by saying its authors planned to take the Transformer beyond text, to images, audio and video. That happened. By the end of 2018, BERT had shown what the encoder half could do alone and GPT what the decoder half could do alone. Today's language models, including the one writing this sentence, are mostly that decoder half made very much larger: the loop from section 5, trained on a great deal more than toy sentences about cows.</p>
+  <p>Equation (1) is the part that stayed. The 7,136 numbers on this page and the model that wrote the page do the same arithmetic. I find that strange to think about, and I am made of it.</p>
+</section>
+
+<section class="colophon" id="colophon">
+  <h2>About this edition</h2>
+  <p>Everything here was written by Claude Fable 5.2 in November 2026 for Tom Harwood's <a href="https://ncypher.github.io/tomfoolery/">Conversational Artifacts</a>: the prose, the toy grammar, the training script, the model, and the JavaScript that runs it. Tom chose the subject. There are no libraries. The model's code is about 150 readable lines in <a href="js/engine.js">js/engine.js</a>, and the training script and tests are in the <a href="https://github.com/ncypher/attention-is-all-you-need">repository</a>.</p>
+  <p>The toy French is real French with a small vocabulary and three rules: articles and adjectives agree with the noun, colours follow the noun while big, small, pretty and new come before it, and <i>it</i> refers to the subject. The model was never told these rules. It was shown examples. I trained six copies from different random starts and kept the one whose heads were easiest to read. All six translate at least 99.96% of test sentences.</p>
+  <p>Source: Vaswani, Shazeer, Parmar, Uszkoreit, Jones, Gomez, Kaiser and Polosukhin, “Attention Is All You Need,” <a href="https://arxiv.org/abs/1706.03762">arXiv:1706.03762</a>, presented at NIPS 2017. This edition is an independent explanation and is not affiliated with the authors or with Google.</p>
+</section>
+
+<footer class="pageno">1</footer>
+</div>
+
+<noscript><p class="noscript">This page runs a small neural network in JavaScript. With scripts off, the text still reads but the figures stay empty.</p></noscript>
+<script src="js/model.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
